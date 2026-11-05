@@ -36,7 +36,7 @@
 ---
 
 ## Phase 3: External CAD Importer & Geometric Metrics
-- [ ] **3.1 Headless Mesh Parser & Volume/Area Extractor** (`src/importers/geometryMetrics.ts`, `src/importers/cadLoader.ts`, `tests/importers.test.ts`)
+- [x] **3.1 Headless Mesh Parser & Volume/Area Extractor** (`src/importers/geometryMetrics.ts`, `src/importers/cadLoader.ts`, `tests/importers.test.ts`)
   - Support `.glb`, `.gltf`, `.obj`, and `.stl` geometries for Primary chassis, Secondary chassis, and rotor blades.
   - Compute signed tetrahedron volume $V$, axial projected area $A_z$, and rotor blade chord/span/pitch parameters directly from buffer geometry.
   - **Approval Command:** `npx vitest run tests/importers.test.ts`
