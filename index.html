@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CanSat Dual-Payload Autogiro Simulator</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <header class="app-header">
+      <div class="header-title">
+        <h1>CanSat Autogiro Mission Simulator</h1>
+        <span class="badge" id="mission-status-badge">READY</span>
+      </div>
+      <div class="header-metrics">
+        <div class="metric-chip">Total Mass: <span id="stat-mass">--</span></div>
+        <div class="metric-chip">Envelope: <span id="stat-envelope">--</span></div>
+        <div class="metric-chip">GPS Mode: <span id="stat-gps">--</span></div>
+        <div class="metric-chip">Egg Safety: <span id="stat-eggs">--</span></div>
+      </div>
+    </header>
+
+    <main class="app-layout">
+      <!-- Left: Assembly & Parameters -->
+      <aside class="panel assembly-panel">
+        <h2>Assembly & Configuration</h2>
+        <div class="form-group">
+          <label for="material-select">Chassis Material:</label>
+          <select id="material-select">
+            <option value="PLA">PLA (1240 kg/m³)</option>
+            <option value="PETG">PETG (1270 kg/m³)</option>
+            <option value="ABS">ABS (1040 kg/m³)</option>
+            <option value="CarbonFiber">Carbon Fiber (1550 kg/m³)</option>
+            <option value="Aluminum6061">Aluminum 6061 (2700 kg/m³)</option>
+          </select>
+        </div>
+
+        <div class="form-group toggle-group">
+          <label>GPS Differential Module:</label>
+          <div class="toggle-buttons">
+            <button type="button" id="btn-gps-yes" class="active">YES</button>
+            <button type="button" id="btn-gps-no">NO (RSSI+Inertial)</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Import CAD Model (.stl, .obj, .gltf, .glb):</label>
+          <input type="file" id="cad-file-input" accept=".stl,.obj,.gltf,.glb" />
+        </div>
+
+        <h3>Bill of Materials (&lt; 600g Total)</h3>
+        <div class="table-container">
+          <table class="bom-table">
+            <thead>
+              <tr><th>Component</th><th>Subsys</th><th>Mass</th></tr>
+            </thead>
+            <tbody id="bom-tbody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+
+        <button id="btn-run-sim" class="btn-primary">▶ Simular Misión</button>
+
+        <div class="export-actions">
+          <button id="btn-export-csv" class="btn-secondary">Export CSV</button>
+          <button id="btn-export-json" class="btn-secondary">Export JSON</button>
+        </div>
+      </aside>
+
+      <!-- Center: 3D Mission Visualizer -->
+      <section class="panel viewport-panel">
+        <div class="viewport-header">
+          <h2>3D Mission Viewport (450m Drop & Target 3m)</h2>
+          <div class="camera-controls">
+            <button type="button" class="btn-cam active" data-cam="overview">Overview</button>
+            <button type="button" class="btn-cam" data-cam="primary">Primary</button>
+            <button type="button" class="btn-cam" data-cam="secondary">Secondary</button>
+          </div>
+        </div>
+        <div id="viewport3d-container"></div>
+        <div class="timeline-controls">
+          <button id="btn-play-pause">▶ Play</button>
+          <input type="range" id="timeline-slider" min="0" max="60" step="0.05" value="0" />
+          <span id="timeline-label">t = 0.00 s / Alt: 0.0 m</span>
+        </div>
+      </section>
+
+      <!-- Right: Ground Station Dashboard -->
+      <aside class="panel dashboard-panel">
+        <h2>Ground Station Telemetry</h2>
+        <div class="chart-box">
+          <canvas id="chart-altitude" width="340" height="130"></canvas>
+        </div>
+        <div class="chart-box">
+          <canvas id="chart-velocity" width="340" height="130"></canvas>
+        </div>
+        <div class="chart-box">
+          <canvas id="chart-rpm" width="340" height="120"></canvas>
+        </div>
+        <div class="chart-box">
+          <canvas id="chart-eggs" width="340" height="90"></canvas>
+        </div>
+        <div class="chart-box">
+          <canvas id="chart-radar" width="340" height="150"></canvas>
+        </div>
+      </aside>
+    </main>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

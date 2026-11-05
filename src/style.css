@@ -1,0 +1,303 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  background-color: #0b0f19;
+  color: #f1f5f9;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.app-header {
+  height: 56px;
+  background-color: #111827;
+  border-bottom: 1px solid #1f2937;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.25rem;
+}
+
+.header-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.header-title h1 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: #38bdf8;
+}
+
+.badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  background-color: #334155;
+  color: #94a3b8;
+}
+
+.badge.active {
+  background-color: #065f46;
+  color: #34d399;
+}
+
+.header-metrics {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.metric-chip {
+  font-size: 0.75rem;
+  background-color: #1e293b;
+  border: 1px solid #334155;
+  padding: 0.25rem 0.6rem;
+  border-radius: 4px;
+  font-family: monospace;
+}
+
+.metric-chip span {
+  font-weight: bold;
+  color: #38bdf8;
+}
+
+.app-layout {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 280px 1fr 360px;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  height: calc(100vh - 56px);
+  overflow: hidden;
+}
+
+.panel {
+  background-color: #111827;
+  border: 1px solid #1f2937;
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  padding: 0.75rem;
+  overflow: hidden;
+}
+
+.panel h2 {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #94a3b8;
+  margin-bottom: 0.6rem;
+  border-bottom: 1px solid #1f2937;
+  padding-bottom: 0.4rem;
+}
+
+.panel h3 {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: #64748b;
+  margin: 0.5rem 0 0.3rem 0;
+}
+
+.form-group {
+  margin-bottom: 0.6rem;
+}
+
+.form-group label {
+  display: block;
+  font-size: 0.75rem;
+  color: #94a3b8;
+  margin-bottom: 0.25rem;
+}
+
+select, input[type="file"] {
+  width: 100%;
+  background-color: #1e293b;
+  border: 1px solid #334155;
+  color: #f8fafc;
+  padding: 0.35rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+}
+
+.toggle-buttons {
+  display: flex;
+  gap: 0.3rem;
+}
+
+.toggle-buttons button {
+  flex: 1;
+  padding: 0.3rem;
+  background-color: #1e293b;
+  border: 1px solid #334155;
+  color: #94a3b8;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.toggle-buttons button.active {
+  background-color: #0284c7;
+  color: #fff;
+  border-color: #38bdf8;
+}
+
+.table-container {
+  flex: 1;
+  overflow-y: auto;
+  border: 1px solid #1f2937;
+  border-radius: 4px;
+  margin-bottom: 0.6rem;
+}
+
+.bom-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.72rem;
+  font-family: monospace;
+}
+
+.bom-table th, .bom-table td {
+  padding: 0.3rem 0.4rem;
+  text-align: left;
+  border-bottom: 1px solid #1f2937;
+}
+
+.bom-table th {
+  background-color: #1e293b;
+  color: #94a3b8;
+}
+
+.btn-primary {
+  width: 100%;
+  padding: 0.55rem;
+  background-color: #22c55e;
+  border: none;
+  color: #0f172a;
+  font-weight: bold;
+  font-size: 0.85rem;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-bottom: 0.5rem;
+}
+
+.btn-primary:hover {
+  background-color: #16a34a;
+}
+
+.export-actions {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.btn-secondary {
+  flex: 1;
+  padding: 0.4rem;
+  background-color: #1e293b;
+  border: 1px solid #334155;
+  color: #cbd5e1;
+  font-size: 0.75rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.viewport-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.viewport-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.4rem;
+}
+
+.camera-controls {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.btn-cam {
+  background-color: #1e293b;
+  border: 1px solid #334155;
+  color: #94a3b8;
+  font-size: 0.7rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.btn-cam.active {
+  background-color: #38bdf8;
+  color: #0f172a;
+  font-weight: bold;
+}
+
+#viewport3d-container {
+  flex: 1;
+  width: 100%;
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.timeline-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding-top: 0.5rem;
+}
+
+.timeline-controls button {
+  padding: 0.35rem 0.75rem;
+  background-color: #0284c7;
+  border: none;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+#timeline-slider {
+  flex: 1;
+  cursor: pointer;
+}
+
+#timeline-label {
+  font-family: monospace;
+  font-size: 0.75rem;
+  color: #94a3b8;
+  min-width: 150px;
+  text-align: right;
+}
+
+.dashboard-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  overflow-y: auto;
+}
+
+.chart-box {
+  background-color: #0d131f;
+  border: 1px solid #1f2937;
+  border-radius: 4px;
+  display: flex;
+  justify-content: center;
+  padding: 0.2rem;
+}
+
+canvas {
+  display: block;
+}

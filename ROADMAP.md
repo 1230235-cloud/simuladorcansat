@@ -57,9 +57,9 @@
 ---
 
 ## Phase 5: Three.js 3D Visualizer & Telemetry Dashboard
-- [ ] **5.1 3D Scene, Separation Animation & Force Vectors** (`src/ui/scene3d.ts`, `src/main.ts`, `index.html`)
+- [x] **5.1 3D Scene, Separation Animation & Force Vectors** (`src/ui/scene3d.ts`, `src/main.ts`, `index.html`)
   - Render $3\text{ m}$ ground target circle, Primary & Secondary CAD meshes, mechanical separation at $200\text{ m}$, blade spin proportional to physical $\omega(t)$, and live arrows for $\vec{R}_{CoM}$, Thrust $\vec{T}_z$, Torque $\vec{\tau}$, and Primary-to-Secondary tracking vector.
   - **Approval Command:** `npx tsc --noEmit && npx vitest run`
-- [ ] **5.2 Real-Time Engineering Plots & GPS Toggle UI** (`src/ui/dashboard.ts`, `tests/e2eSim.test.ts`)
+- [x] **5.2 Real-Time Engineering Plots & GPS Toggle UI** (`src/ui/dashboard.ts`, `tests/e2eSim.test.ts`)
   - Display RPM vs. $V_z$, altitude vs. time ($450\text{ m} \to 0\text{ m} + 10\text{ s}$), impact G-load gauges for both $65\text{ g}$ eggs, and live `useGps` switch (`Yes/No`).
   - **Approval Command:** `npx vitest run`
