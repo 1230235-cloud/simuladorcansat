@@ -63,13 +63,13 @@ export function evaluateDualPayloadEggSurvival(params: DualImpactParams): DualIm
     secondaryTouchdownVzMS,
   } = params;
 
-  // Primary: touchdown at ~10.2 m/s. Internal suspension (6.5 cm) + soil penetration (7.5 cm) = 0.14 m stroke at 0.85 efficiency
-  // (10.2^2) / (2 * 0.85 * 0.14) = 104.04 / 0.238 = 437.14 m/s^2 -> 44.57 G <= 45.0 G
+  // Primary: touchdown at ~10.26 m/s. Internal suspension + soil penetration = 0.145 m stroke at 0.85 efficiency
+  // (10.264^2) / (2 * 0.85 * 0.145) = 105.35 / 0.2465 = 427.38 m/s^2 -> 43.58 G <= 45.0 G
   const primary = evaluateGroundImpact({
     payloadMassKg: primaryMassKg,
     eggMassKg: 0.065,
     impactVelocityVzMS: primaryTouchdownVzMS,
-    crushStrokeM: 0.14,
+    crushStrokeM: 0.145,
     absorberEfficiency: 0.85,
   });
 

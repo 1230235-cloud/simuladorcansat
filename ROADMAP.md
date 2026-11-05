@@ -44,13 +44,13 @@
 ---
 
 ## Phase 4: Dual Telemetry, Relative Localization (`useGps` Toggle) & Full Flight Loop
-- [ ] **4.1 Synthetic Sensors & Relative Localization Engine** (`src/sim/telemetry.ts`, `tests/telemetry.test.ts`)
+- [x] **4.1 Synthetic Sensors & Relative Localization Engine** (`src/sim/telemetry.ts`, `tests/telemetry.test.ts`)
   - Simulate Barometer ($P, T$, derived altitude & vertical speed), 9-axis IMU (3-axis accelerometer, 3-axis gyroscope measuring autorotation $\omega_z$ in $\text{rad/s}$ & RPM, magnetometer orientation), and release servo state.
   - Implement Primary-to-Secondary localization (distance $d_{12}$ and bearing vector $\vec{u}_{12}$):
     - Mode A (`useGps: true`): Differential GPS coordinates + IMU heading.
     - Mode B (`useGps: false`): LoRa RSSI log-distance path loss + IMU/barometric ballistic propagation.
   - **Approval Command:** `npx vitest run tests/telemetry.test.ts`
-- [ ] **4.2 Full Mission Simulation Loop** (`src/sim/flightLoop.ts`, `tests/flightLoop.test.ts`)
+- [x] **4.2 Full Mission Simulation Loop** (`src/sim/flightLoop.ts`, `tests/flightLoop.test.ts`)
   - Execute complete timeline: Ascent $\to$ Drop at $450\text{ m}$ above $3\text{ m}$ diameter target $\to$ Coupled descent $\to$ $200\text{ m}$ separation & blade deployment $\to$ Dual descent $\to$ Landing & $+10\text{ s}$ post-landing stationary telemetry capture.
   - **Approval Command:** `npx vitest run tests/flightLoop.test.ts`
 
