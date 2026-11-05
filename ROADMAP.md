@@ -20,16 +20,16 @@
 ---
 
 ## Phase 2: Separation, Passive Autorotation & Impact Survival Physics Engine
-- [ ] **2.1 ISA Atmosphere & Ballistic Free-Fall Solver** (`src/physics/isa.ts`, `src/physics/ballistics.ts`, `tests/ballistics.test.ts`)
+- [x] **2.1 ISA Atmosphere & Ballistic Free-Fall Solver** (`src/physics/isa.ts`, `src/physics/ballistics.ts`, `tests/ballistics.test.ts`)
   - Model $\rho(h), P(h), T(h)$ from $0\text{ m}$ to $450\text{ m}$.
   - Model coupled free-fall ($450\text{ m} \to 200\text{ m}$) and Secondary Payload unbraked free-fall ($200\text{ m} \to 0\text{ m}$).
   - **Approval Command:** `npx vitest run tests/ballistics.test.ts`
-- [ ] **2.2 Mechanical Separation & Passive Autorotation Solver** (`src/physics/separation.ts`, `src/physics/autorotation.ts`, `tests/autorotation.test.ts`)
+- [x] **2.2 Mechanical Separation & Passive Autorotation Solver** (`src/physics/separation.ts`, `src/physics/autorotation.ts`, `tests/autorotation.test.ts`)
   - Enforce linear momentum conservation during $h = 200\text{ m}$ spring/servo decoupling.
   - Solve differential spin-up $\tau_{net}(\omega, V_z) = \tau_{drive} - \tau_{drag} = I_{zz}\alpha$ for the Primary Payload from blade deployment ($\omega_0 = 0$) to equilibrium RPM ($\alpha \to 0$).
   - Verify steady-state Primary terminal descent speed strictly within $V_{z,1} \in [8, 12]\text{ m/s}$ without any parachute or active motor.
   - **Approval Command:** `npx vitest run tests/autorotation.test.ts`
-- [ ] **2.3 Ground Impact & 65 g Egg Survival Solver** (`src/physics/impact.ts`, `tests/impact.test.ts`)
+- [x] **2.3 Ground Impact & 65 g Egg Survival Solver** (`src/physics/impact.ts`, `tests/impact.test.ts`)
   - Compute kinetic energy at touchdown ($h = 0\text{ m}$), crumple zone deformation stroke $\Delta s$, and peak deceleration $G_{peak}$ for both Primary ($V_{z,1} \in [8, 12]\text{ m/s}$) and Secondary (free-fall from $200\text{ m}$) payloads to verify both $65\text{ g}$ eggs survive below structural fracture threshold.
   - **Approval Command:** `npx vitest run tests/impact.test.ts`
 
