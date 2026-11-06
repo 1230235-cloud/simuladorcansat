@@ -7,6 +7,7 @@ import { MaterialName } from '../assembly/materials';
 import { validateCanSatEnvelope, EnvelopeValidationReport } from '../assembly/validator';
 import { computeMassProperties, DualMassProperties } from '../physics/massProperties';
 import { runFullMissionSimulation, MissionResult } from '../sim/flightLoop';
+import { FailureConfig } from '../physics/failures';
 import { estimateVelocityAndMaxAltitudeFromTelemetry } from '../sim/telemetry';
 
 export interface DashboardControllerOptions {
@@ -67,8 +68,8 @@ export function createDashboardController(options: DashboardControllerOptions = 
         Aluminum6061: 2.177,
       };
       const mult = densityMultipliers[newMaterial] ?? 1.0;
-      assembly.primary.chassisMassKg = 0.080 * mult;
-      assembly.secondary.chassisMassKg = 0.045 * mult;
+      assembly.primary.chassisMassKg = 0.120 * mult;
+      assembly.secondary.chassisMassKg = 0.085 * mult;
       return recalculate();
     },
     addInternalComponent(target: 'primary' | 'secondary', component: Component) {
@@ -78,6 +79,16 @@ export function createDashboardController(options: DashboardControllerOptions = 
         assembly.secondary.components.push(component);
       }
       return recalculate();
+    },
+    removeInternalComponent(target: 'primary' | 'secondary', componentId: string) {
+      const list = target === 'primary' ? assembly.primary.components : assembly.secondary.components;
+      const idx = list.findIndex((c) => c.id === componentId);
+      if (idx !== -1) list.splice(idx, 1);
+      return recalculate();
+    },
+    hasComponent(target: 'primary' | 'secondary', componentId: string): boolean {
+      const list = target === 'primary' ? assembly.primary.components : assembly.secondary.components;
+      return list.some((c) => c.id === componentId);
     },
     simulateCustomImpact(params: CustomImpactParams) {
       const g0 = 9.80665;
@@ -90,15 +101,21 @@ export function createDashboardController(options: DashboardControllerOptions = 
       eggFractureAlert = g1 > 45.0 || g2 > 45.0;
       return eggFractureAlert;
     },
-    runSimulation(): MissionResult {
-      return runFullMissionSimulation({
+    runSimulation(
+      failureConfig?: FailureConfig,
+      altitudes?: { dropAltitudeM?: number; separationAltitudeM?: number }
+    ): MissionResult {
+      const res = runFullMissionSimulation({
         assembly,
-        dropAltitudeM: 450.0,
-        separationAltitudeM: 200.0,
+        dropAltitudeM: altitudes?.dropAltitudeM ?? 450.0,
+        separationAltitudeM: altitudes?.separationAltitudeM ?? 200.0,
         targetCircleDiameterM: 3.0,
         postLandingDurationS: 10.0,
         dtS: 0.05,
+        failureConfig,
       });
+      eggFractureAlert = !res.impactReport.bothEggsSurvived;
+      return res;
     },
   };
 }

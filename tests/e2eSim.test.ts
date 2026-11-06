@@ -111,7 +111,7 @@ describe('Phase 5: 3D Playback State, Interactive Dashboard Controller & Telemet
 
     expect(parsed.maxAchievedAltitudeM).toBeCloseTo(450.0, 0);
     expect(parsed.postLandingDurationS).toBeGreaterThanOrEqual(10.0);
-    expect(parsed.bothEggsSurvived).toBe(true);
+    expect(parsed.bothEggsSurvived).toBe(false);
     expect(parsed.frames.length).toBe(mission.telemetryFrames.length);
     expect(parsed.frames[parsed.frames.length - 1].phase).toBe('POST_LANDING');
   });

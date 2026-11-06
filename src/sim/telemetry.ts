@@ -37,13 +37,17 @@ export interface GpsCoordinates {
   altitudeM: number;
 }
 
-export type LocalizationMode = 'GPS_DIFFERENTIAL' | 'RSSI_IMU_BALLISTIC';
+export type LocalizationMode =
+  | 'GPS_DIFFERENTIAL'
+  | 'RSSI_IMU_BALLISTIC'
+  | 'NO_RF_BLIND_ESTIMATE';
 
 export interface RelativeLocalizationResult {
   mode: LocalizationMode;
   distance3DM: number;
   bearingRad: number;
   rssiDbm?: number;
+  signalAvailable?: boolean;
   gpsCoordinates?: {
     primary: GpsCoordinates;
     secondary: GpsCoordinates;
@@ -71,12 +75,14 @@ export interface FrameGenerationParams {
   secondaryPositionM: Vector3D;
   servoReleased: boolean;
   useGps: boolean;
+  secondaryHasRf?: boolean;
 }
 
 export interface LocalizationParams {
   primaryPositionM: Vector3D;
   secondaryPositionM: Vector3D;
   useGps: boolean;
+  secondaryHasRf?: boolean;
 }
 
 export interface TrajectorySummary {
@@ -85,7 +91,7 @@ export interface TrajectorySummary {
 }
 
 export function computeRelativeLocalization(params: LocalizationParams): RelativeLocalizationResult {
-  const { primaryPositionM, secondaryPositionM, useGps } = params;
+  const { primaryPositionM, secondaryPositionM, useGps, secondaryHasRf = true } = params;
 
   const dx = secondaryPositionM.x - primaryPositionM.x;
   const dy = secondaryPositionM.y - primaryPositionM.y;
@@ -93,6 +99,15 @@ export function computeRelativeLocalization(params: LocalizationParams): Relativ
 
   const distance3DM = Math.hypot(dx, dy, dz);
   const bearingRad = Math.atan2(dy, dx);
+
+  if (!secondaryHasRf) {
+    return {
+      mode: 'NO_RF_BLIND_ESTIMATE',
+      distance3DM,
+      bearingRad,
+      signalAvailable: false,
+    };
+  }
 
   if (useGps) {
     const refLat = 19.4326;
@@ -104,6 +119,7 @@ export function computeRelativeLocalization(params: LocalizationParams): Relativ
       mode: 'GPS_DIFFERENTIAL',
       distance3DM,
       bearingRad,
+      signalAvailable: true,
       gpsCoordinates: {
         primary: {
           latitudeDeg: refLat + primaryPositionM.y / mPerDegLat,
@@ -126,6 +142,7 @@ export function computeRelativeLocalization(params: LocalizationParams): Relativ
     mode: 'RSSI_IMU_BALLISTIC',
     distance3DM,
     bearingRad,
+    signalAvailable: true,
     rssiDbm,
   };
 }
@@ -164,6 +181,7 @@ export function synthesizeTelemetryFrame(params: FrameGenerationParams): Telemet
     primaryPositionM,
     secondaryPositionM,
     useGps,
+    secondaryHasRf: params.secondaryHasRf,
   });
 
   return {

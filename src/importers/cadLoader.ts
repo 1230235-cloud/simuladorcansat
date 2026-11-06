@@ -55,10 +55,33 @@ export function parseCadFromBuffer(buffer: ArrayBuffer, format: CadFormat): THRE
 
     const geometry = new THREE.BufferGeometry();
     geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    geometry.computeVertexNormals();
     return geometry;
   }
 
   if (format === 'stl') {
+    if (buffer.byteLength >= 84) {
+      const reader = new DataView(buffer);
+      const nFaces = reader.getUint32(80, true);
+      if (84 + nFaces * 50 === buffer.byteLength) {
+        const positions = new Float32Array(nFaces * 9);
+        let posIdx = 0;
+        for (let face = 0; face < nFaces; face++) {
+          const offset = 84 + face * 50;
+          for (let v = 0; v < 3; v++) {
+            const vOffset = offset + 12 + v * 12;
+            positions[posIdx++] = reader.getFloat32(vOffset, true);
+            positions[posIdx++] = reader.getFloat32(vOffset + 4, true);
+            positions[posIdx++] = reader.getFloat32(vOffset + 8, true);
+          }
+        }
+        const geometry = new THREE.BufferGeometry();
+        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        geometry.computeVertexNormals();
+        return geometry;
+      }
+    }
+
     const text = decoder.decode(buffer);
     const lines = text.split('\n');
     const positions: number[] = [];
@@ -73,6 +96,7 @@ export function parseCadFromBuffer(buffer: ArrayBuffer, format: CadFormat): THRE
 
     const geometry = new THREE.BufferGeometry();
     geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    geometry.computeVertexNormals();
     return geometry;
   }
 

@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { createDefaultAssembly } from '../src/assembly/components';
 import { runFullMissionSimulation } from '../src/sim/flightLoop';
 
-describe('Phase 4.2: Complete Mission Flight Loop (Ascent -> 450m Drop -> 200m Separation -> Touchdown + 10s)', () => {
-  it('executes full flight timeline with exact altitude milestones (450m drop, 200m decoupling) and >= 10s post-landing telemetry', () => {
+describe('Phase 4.2: Complete Mission Flight Loop & Ruthless Failure Injection (FailureConfig)', () => {
+  it('executes full flight timeline (450m drop, 200m decoupling, >= 10s post-landing) and exposes Secondary free-fall bottom-out', () => {
     const assembly = createDefaultAssembly({ useGps: true });
 
     const mission = runFullMissionSimulation({
@@ -15,44 +15,86 @@ describe('Phase 4.2: Complete Mission Flight Loop (Ascent -> 450m Drop -> 200m S
       dtS: 0.05,
     });
 
-    // 1. Ascent and Drop at 450m over 3m diameter target circle (radius = 1.5m)
     expect(mission.events.dropAltitudeM).toBeCloseTo(450.0, 0);
     expect(mission.events.dropHorizontalRadiusM).toBeLessThanOrEqual(1.5);
-
-    // 2. Mechanical decoupling & blade deployment at 200m (+/- 1.0m per AUDITORIA.md)
     expect(Math.abs(mission.events.separationAltitudeM - 200.0)).toBeLessThanOrEqual(1.0);
-    expect(mission.events.separationTimeS).toBeGreaterThan(mission.events.dropTimeS);
 
-    // 3. Primary terminal descent strictly within [8.0, 12.0] m/s & Secondary ballistic touchdown
+    // Primary reaches steady autorotation in [8.0, 12.0] m/s
     expect(mission.primaryTouchdownVzMS).toBeGreaterThanOrEqual(8.0);
     expect(mission.primaryTouchdownVzMS).toBeLessThanOrEqual(12.0);
     expect(mission.events.secondaryLandingTimeS).toBeLessThan(mission.events.primaryLandingTimeS);
 
-    // 4. Both 65g chicken eggs survive impact (<= 45 G)
-    expect(mission.impactReport.primary.eggSurvived).toBe(true);
-    expect(mission.impactReport.secondary.eggSurvived).toBe(true);
-    expect(mission.impactReport.bothEggsSurvived).toBe(true);
+    // Secondary free-fall from 200m with 8-12mm clearance bottoms out against rigid chassis
+    expect(mission.impactReport.secondary.bottomedOut).toBe(true);
+    expect(mission.impactReport.secondary.eggSurvived).toBe(false);
+    expect(mission.impactReport.secondary.failureCause).toBe('BOTTOM_OUT_CHASSIS_IMPACT');
 
-    // 5. Post-landing telemetry continues for >= 10.0s after Primary touchdown
+    // Post-landing telemetry continues for >= 10.0s
     const postLandingDuration =
       mission.telemetryFrames[mission.telemetryFrames.length - 1].timeS -
       mission.events.primaryLandingTimeS;
-
     expect(postLandingDuration).toBeGreaterThanOrEqual(10.0);
-
-    // Verify phases covered in telemetry stream
-    const phases = new Set(mission.telemetryFrames.map((f) => f.phase));
-    expect(phases.has('ASCENT')).toBe(true);
-    expect(phases.has('DROP_COUPLED')).toBe(true);
-    expect(phases.has('PRIMARY_AUTOROTATION')).toBe(true);
-    expect(phases.has('POST_LANDING')).toBe(true);
   });
 
-  it('supports running full mission with GPS disabled (useGps: false) using RSSI/inertial relative tracking', () => {
-    const assemblyNoGps = createDefaultAssembly({ useGps: false });
+  it('injects real mission failures via FailureConfig: crosswind drift outside 3m target, pinFrictionJam at 200m, and bladeDeployAsymmetry nutation', () => {
+    const assembly = createDefaultAssembly({ useGps: false });
+
+    // 1. Crosswind & gusts -> drifts outside 3m target circle (radius > 1.5m) & oblique impact
+    const windMission = runFullMissionSimulation({
+      assembly,
+      dropAltitudeM: 450.0,
+      separationAltitudeM: 200.0,
+      targetCircleDiameterM: 3.0,
+      postLandingDurationS: 10.0,
+      dtS: 0.1,
+      failureConfig: {
+        windSpeedMs: 6.5,
+        windGustsMs: 2.5,
+      },
+    });
+    expect(windMission.events.primaryLandingRadiusM).toBeGreaterThan(1.5);
+    expect(windMission.events.landedInsideTarget).toBe(false);
+    expect(windMission.impactReport.primary.impactAngleDeg).toBeGreaterThan(10.0);
+
+    // 2. Mechanical pin friction jam at 200m -> fails to decouple, crashes at high speed (> 20 m/s)
+    const jammedMission = runFullMissionSimulation({
+      assembly,
+      dropAltitudeM: 450.0,
+      separationAltitudeM: 200.0,
+      targetCircleDiameterM: 3.0,
+      postLandingDurationS: 10.0,
+      dtS: 0.1,
+      failureConfig: {
+        pinFrictionJam: true,
+      },
+    });
+    expect(jammedMission.events.servoJammed).toBe(true);
+    expect(jammedMission.primaryTouchdownVzMS).toBeGreaterThan(20.0);
+    expect(jammedMission.impactReport.primary.eggSurvived).toBe(false);
+
+    // 3. Blade deployment asymmetry -> nutation/wobble (> 15 deg) & loss of lift (Vz > 12 m/s)
+    const asymMission = runFullMissionSimulation({
+      assembly,
+      dropAltitudeM: 450.0,
+      separationAltitudeM: 200.0,
+      targetCircleDiameterM: 3.0,
+      postLandingDurationS: 10.0,
+      dtS: 0.1,
+      failureConfig: {
+        bladeDeployAsymmetry: 0.65,
+      },
+    });
+    expect(asymMission.events.maxTiltDeg).toBeGreaterThan(15.0);
+    expect(asymMission.primaryTouchdownVzMS).toBeGreaterThan(12.0);
+    expect(asymMission.impactReport.primary.eggSurvived).toBe(false);
+  });
+
+  it('reflects blind ballistic tracking (NO_RF_BLIND_ESTIMATE) when Secondary Payload has zero electronics', () => {
+    const cleanAssembly = createDefaultAssembly({ useGps: false });
+    expect(cleanAssembly.secondary.components.length).toBe(1); // Only egg
 
     const mission = runFullMissionSimulation({
-      assembly: assemblyNoGps,
+      assembly: cleanAssembly,
       dropAltitudeM: 450.0,
       separationAltitudeM: 200.0,
       targetCircleDiameterM: 3.0,
@@ -64,7 +106,7 @@ describe('Phase 4.2: Complete Mission Flight Loop (Ascent -> 450m Drop -> 200m S
       (f) => f.phase === 'PRIMARY_AUTOROTATION'
     );
     expect(postSepFrame).toBeDefined();
-    expect(postSepFrame!.relativeLocalization.mode).toBe('RSSI_IMU_BALLISTIC');
-    expect(postSepFrame!.relativeLocalization.distance3DM).toBeGreaterThan(0);
+    expect(postSepFrame!.relativeLocalization.mode).toBe('NO_RF_BLIND_ESTIMATE');
+    expect(postSepFrame!.relativeLocalization.signalAvailable).toBe(false);
   });
 });

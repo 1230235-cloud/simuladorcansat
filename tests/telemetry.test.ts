@@ -108,5 +108,18 @@ describe('Phase 4.1: Synthetic Sensors, Trajectory Estimator & Relative Localiza
     expect(locRssi.rssiDbm).toBeLessThan(-40);
     expect(Math.abs(locRssi.distance3DM - trueDist3D)).toBeLessThan(8.0);
     expect(Math.abs(locRssi.bearingRad - trueBearingRad)).toBeLessThan(0.25);
+
+    // Passive Secondary with zero electronics (no LoRa transmitter / no GPS)
+    const locNoRf = computeRelativeLocalization({
+      primaryPositionM: p1,
+      secondaryPositionM: p2,
+      useGps: false,
+      secondaryHasRf: false,
+    });
+
+    expect(locNoRf.mode).toBe('NO_RF_BLIND_ESTIMATE');
+    expect(locNoRf.signalAvailable).toBe(false);
+    expect(locNoRf.rssiDbm).toBeUndefined();
+    expect(locNoRf.gpsCoordinates).toBeUndefined();
   });
 });
