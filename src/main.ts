@@ -1,4 +1,5 @@
-import { createDashboardController, exportMissionTelemetryCsv, exportMissionTelemetryJson } from './ui/dashboard';
+import { createDashboardController } from './ui/dashboard';
+import { setupReportAndExportActions } from './ui/technicalReport';
 import { interpolateSceneStateAtTime } from './ui/scene3d';
 import { CanSat3DViewport } from './ui/viewport3d';
 import { CameraViewMode } from './ui/cameraController';
@@ -51,18 +52,13 @@ function updateHeaderAndBom(): void {
   eggElem.style.color = pSurv ? '#22c55e' : '#ef4444';
 
   const tbody = document.getElementById('bom-tbody')!;
-  tbody.innerHTML = '';
   const rows = [
     { name: 'Primary Chassis', sub: 'Primary', m: state.assembly.primary.chassisMassKg },
     { name: 'Secondary Chassis', sub: 'Secondary', m: state.assembly.secondary.chassisMassKg },
     ...state.assembly.primary.components.map((c) => ({ name: c.id.replace(/_/g, ' '), sub: 'Primary', m: c.massKg })),
     ...state.assembly.secondary.components.map((c) => ({ name: c.id.replace(/_/g, ' '), sub: 'Secondary', m: c.massKg })),
   ];
-  rows.forEach((r) => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${r.name}</td><td>${r.sub}</td><td>${(r.m * 1000).toFixed(1)} g</td>`;
-    tbody.appendChild(tr);
-  });
+  tbody.innerHTML = rows.map((r) => `<tr><td>${r.name}</td><td>${r.sub}</td><td>${(r.m * 1000).toFixed(1)} g</td></tr>`).join('');
 }
 
 function renderCatalog(): void {
@@ -72,22 +68,11 @@ function renderCatalog(): void {
     const active = controller.hasComponent(item.stage, item.id);
     const row = document.createElement('div');
     row.className = 'catalog-item';
-    row.innerHTML = `
-      <label>
-        <input type="checkbox" data-id="${item.id}" data-stage="${item.stage}" ${active ? 'checked' : ''} ${item.isMandatory ? 'disabled' : ''} />
-        ${item.name}
-      </label>
-      <span class="catalog-meta">${(item.massKg * 1000).toFixed(0)}g</span>
-    `;
-    const chk = row.querySelector('input')!;
-    chk.addEventListener('change', () => {
-      if (chk.checked) {
-        controller.addInternalComponent(item.stage, item);
-      } else {
-        controller.removeInternalComponent(item.stage, item.id);
-      }
-      updateHeaderAndBom();
-      runSimulationAndSetup();
+    row.innerHTML = `<label><input type="checkbox" data-id="${item.id}" data-stage="${item.stage}" ${active ? 'checked' : ''} ${item.isMandatory ? 'disabled' : ''} />${item.name}</label><span class="catalog-meta">${(item.massKg * 1000).toFixed(0)}g</span>`;
+    row.querySelector('input')!.addEventListener('change', (e) => {
+      if ((e.target as HTMLInputElement).checked) controller.addInternalComponent(item.stage, item);
+      else controller.removeInternalComponent(item.stage, item.id);
+      updateHeaderAndBom(); runSimulationAndSetup();
     });
     container.appendChild(row);
   });
@@ -236,12 +221,22 @@ document.getElementById('timeline-slider')!.addEventListener('input', (e) => {
   updateFrame(currentTimeS);
 });
 
-function exportData(fn: () => string, filename: string, type: string): void {
-  if (!currentMission) return;
-  Object.assign(document.createElement('a'), { href: URL.createObjectURL(new Blob([fn()], { type })), download: filename }).click();
-}
-document.getElementById('btn-export-csv')!.addEventListener('click', () => exportData(() => exportMissionTelemetryCsv(currentMission!), 'cansat_telemetry.csv', 'text/csv'));
-document.getElementById('btn-export-json')!.addEventListener('click', () => exportData(() => exportMissionTelemetryJson(currentMission!), 'cansat_telemetry.json', 'application/json'));
+setupReportAndExportActions(() => currentMission, () => {
+  const st = controller.getState();
+  const dEl = document.getElementById('slider-drop-alt') as HTMLInputElement | null;
+  const sEl = document.getElementById('slider-sep-alt') as HTMLInputElement | null;
+  const kEl = document.getElementById('slider-stiffness') as HTMLInputElement | null;
+  const wEl = document.getElementById('slider-wind') as HTMLInputElement | null;
+  return {
+    totalMassG: Math.round(st.envelopeReport.totalMassKg * 1000),
+    izzGm2: Number((st.massProperties.coupled.izzKgM2 * 1000).toFixed(2)),
+    chassisMaterial: st.material,
+    dropAltitudeM: dEl ? Number(dEl.value) : 450,
+    separationAltitudeM: sEl ? Number(sEl.value) : 200,
+    bandStiffnessK: kEl ? Number(kEl.value) : 950,
+    windSpeedMs: wEl ? Number(wEl.value) : 0,
+  };
+});
 
 updateHeaderAndBom();
 renderCatalog();

@@ -13,10 +13,12 @@
         <span class="badge" id="mission-status-badge">READY</span>
       </div>
       <div class="header-metrics">
-        <div class="metric-chip">Total Mass: <span id="stat-mass">--</span></div>
+        <div class="metric-chip">Mass: <span id="stat-mass">--</span></div>
+        <div class="metric-chip">CoM Z: <span id="stat-com">--</span></div>
+        <div class="metric-chip">Izz: <span id="stat-izz">--</span></div>
         <div class="metric-chip">Envelope: <span id="stat-envelope">--</span></div>
-        <div class="metric-chip">GPS Mode: <span id="stat-gps">--</span></div>
-        <div class="metric-chip">Egg Safety: <span id="stat-eggs">--</span></div>
+        <div class="metric-chip">GPS: <span id="stat-gps">--</span></div>
+        <div class="metric-chip">Eggs: <span id="stat-eggs">--</span></div>
       </div>
     </header>
 
@@ -43,16 +45,51 @@
           </div>
         </div>
 
-        <div class="form-group">
-          <label>Import CAD Model (.stl, .obj, .gltf, .glb):</label>
-          <input type="file" id="cad-file-input" accept=".stl,.obj,.gltf,.glb" />
+        <!-- Altitudes Configuration -->
+        <div class="altitude-panel">
+          <div class="slider-row">
+            <label for="slider-drop-alt">Altura Liberación / Dron: <span id="val-drop-alt" class="slider-val">450 m</span></label>
+            <input type="range" id="slider-drop-alt" min="50" max="600" step="10" value="450" />
+          </div>
+          <div class="slider-row">
+            <label for="slider-sep-alt">Altura Desacoplamiento: <span id="val-sep-alt" class="slider-val">200 m</span></label>
+            <input type="range" id="slider-sep-alt" min="20" max="500" step="10" value="200" />
+          </div>
+          <div id="alt-validation-warn" class="alt-warn" style="display: none;">⚠ Desacople debe ser menor a liberación</div>
+        </div>
+
+        <!-- 1. Modular CAD Import Section -->
+        <div class="form-group cad-import-section">
+          <label>Import CAD 3D (.stl, .obj, .gltf, .glb):</label>
+          <div class="toggle-buttons mini-toggle">
+            <button type="button" id="btn-cad-mode-complete" class="active">Ensamblado Completo</button>
+            <button type="button" id="btn-cad-mode-separate">Etapas Separadas</button>
+          </div>
+          <div id="cad-complete-box" class="cad-input-box">
+            <label class="sub-label">Modelo CanSat Completo:</label>
+            <input type="file" id="cad-file-complete" accept=".stl,.obj,.gltf,.glb" />
+          </div>
+          <div id="cad-separate-box" class="cad-input-box" style="display: none;">
+            <label class="sub-label">Carga Primaria (máx 16 cm):</label>
+            <input type="file" id="cad-file-primary" accept=".stl,.obj,.gltf,.glb" />
+            <label class="sub-label">Palas Autogiro:</label>
+            <input type="file" id="cad-file-blades" accept=".stl,.obj,.gltf,.glb" />
+            <label class="sub-label">Carga Secundaria (máx 7 cm):</label>
+            <input type="file" id="cad-file-secondary" accept=".stl,.obj,.gltf,.glb" />
+          </div>
+        </div>
+
+        <!-- 3. Component Catalog Selector -->
+        <h3>Catálogo de Componentes Internos</h3>
+        <div class="catalog-container" id="catalog-container">
+          <!-- Dynamically populated checkboxes -->
         </div>
 
         <h3>Bill of Materials (&lt; 600g Total)</h3>
         <div class="table-container">
           <table class="bom-table">
             <thead>
-              <tr><th>Component</th><th>Subsys</th><th>Mass</th></tr>
+              <tr><th>Component</th><th>Stage</th><th>Mass</th></tr>
             </thead>
             <tbody id="bom-tbody">
               <!-- Dynamically populated -->
@@ -60,11 +97,55 @@
           </table>
         </div>
 
+        <!-- Condiciones Reales y Fallos -->
+        <h3>Condiciones Reales y Fallos</h3>
+        <div class="failure-panel">
+          <div class="slider-row">
+            <label for="slider-wind">Viento lateral: <span id="val-wind" class="slider-val">0.0 m/s</span></label>
+            <input type="range" id="slider-wind" min="0" max="10" step="0.5" value="0" />
+          </div>
+          <div class="slider-row">
+            <label for="slider-gusts">Ráfagas viento: <span id="val-gusts" class="slider-val">0.0 m/s</span></label>
+            <input type="range" id="slider-gusts" min="0" max="5" step="0.5" value="0" />
+          </div>
+          <div class="slider-row">
+            <label for="slider-stiffness">Rigidez ligas: <span id="val-stiffness" class="slider-val">950 N/m</span></label>
+            <input type="range" id="slider-stiffness" min="100" max="2500" step="50" value="950" />
+          </div>
+          <div class="slider-row">
+            <label for="slider-asym">Asimetría aspas: <span id="val-asym" class="slider-val">0%</span></label>
+            <input type="range" id="slider-asym" min="0" max="100" step="5" value="0" />
+          </div>
+          <div class="form-group-compact">
+            <label for="select-ground">Dureza de suelo:</label>
+            <select id="select-ground">
+              <option value="soft_grass">Pasto húmedo (blando)</option>
+              <option value="hard_dirt">Tierra dura / Asfalto</option>
+            </select>
+          </div>
+          <div class="failure-toggles">
+            <label class="toggle-checkbox">
+              <input type="checkbox" id="chk-tpu" checked />
+              <span>Cápsula TPU / Espuma amortiguadora</span>
+            </label>
+            <label class="toggle-checkbox">
+              <input type="checkbox" id="chk-jam" />
+              <span>Atasco cerrojo (no desacopla)</span>
+            </label>
+            <label class="toggle-checkbox">
+              <input type="checkbox" id="chk-late" />
+              <span>Retraso despliegue (tardío)</span>
+            </label>
+          </div>
+        </div>
+
         <button id="btn-run-sim" class="btn-primary">▶ Simular Misión</button>
 
         <div class="export-actions">
           <button id="btn-export-csv" class="btn-secondary">Export CSV</button>
           <button id="btn-export-json" class="btn-secondary">Export JSON</button>
+          <button id="btn-drop-test" class="btn-secondary">📋 Protocolo Banco</button>
+          <button id="btn-export-report" class="btn-secondary">📄 Reporte PDR/CDR</button>
         </div>
       </aside>
 
@@ -72,13 +153,21 @@
       <section class="panel viewport-panel">
         <div class="viewport-header">
           <h2>3D Mission Viewport (450m Drop & Target 3m)</h2>
+          <!-- 2. Multi-camera selector -->
           <div class="camera-controls">
-            <button type="button" class="btn-cam active" data-cam="overview">Overview</button>
-            <button type="button" class="btn-cam" data-cam="primary">Primary</button>
-            <button type="button" class="btn-cam" data-cam="secondary">Secondary</button>
+            <button type="button" class="btn-cam active" data-cam="orbit">Orbit Libre</button>
+            <button type="button" class="btn-cam" data-cam="followPrimary">Follow Primaria</button>
+            <button type="button" class="btn-cam" data-cam="followSecondary">Follow Secundaria</button>
+            <button type="button" class="btn-cam" id="btn-cam-drone" data-cam="fixedDrone">Fija Dron (450 m)</button>
+            <button type="button" class="btn-cam" id="btn-cam-sep" data-cam="fixedSeparation">Fija Desacople (200 m)</button>
+            <button type="button" class="btn-cam" data-cam="fixedTarget">Fija Diana (Suelo)</button>
           </div>
         </div>
-        <div id="viewport3d-container"></div>
+        <div id="viewport3d-container">
+          <div id="impact-alert-banner" class="impact-alert-banner" style="display: none;">
+            💥 IMPACTO CRÍTICO: HUEVO FRACTURADO (BOTTOM-OUT)
+          </div>
+        </div>
         <div class="timeline-controls">
           <button id="btn-play-pause">▶ Play</button>
           <input type="range" id="timeline-slider" min="0" max="60" step="0.05" value="0" />
